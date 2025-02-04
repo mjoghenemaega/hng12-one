@@ -1,4 +1,4 @@
- 💻# Number Classification API
+# 💻 Number Classification API
 
 ## Overview
 The **Number Classification API** is a Django-based API that classifies numbers based on their properties. It determines whether a given number is prime, perfect, odd/even, Armstrong, and provides a fun fact about the number.
