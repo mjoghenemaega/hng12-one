@@ -10,14 +10,16 @@ class NumberClassificationAPI(View):
         # Validate input
         if not number:
             return JsonResponse({"number": "Number is required!", "error": True}, status=400)
-        if not number.isdigit():
-            return JsonResponse({"number": number, "error": True}, status=400)
 
-        number = int(number)
+        try:
+            number = int(number)
+        except ValueError:
+            return JsonResponse({"number": number, "error": True, "message": "Invalid number format!"}, status=400)
+
         is_prime = self.is_prime(number)
         is_perfect = self.is_perfect(number)
         properties = self.get_properties(number)
-        digit_sum = sum(int(digit) for digit in str(number))
+        digit_sum = sum(abs(int(digit)) for digit in str(number) if digit.isdigit())  # Ensure digits are positive
         fun_fact = self.get_fun_fact(number)
 
         return JsonResponse({
@@ -38,22 +40,22 @@ class NumberClassificationAPI(View):
         return True
 
     def is_perfect(self, n):
-        return sum(i for i in range(1, n) if n % i == 0) == n
+        return n > 0 and sum(i for i in range(1, n) if n % i == 0) == n
 
     def get_properties(self, n):
-        is_armstrong = n == sum(pow(int(digit), len(str(n))) for digit in str(n))
+        abs_n = abs(n)  # Work with absolute value
+        is_armstrong = abs_n == sum(pow(int(digit), len(str(abs_n))) for digit in str(abs_n))
         is_odd = n % 2 != 0
-        if is_armstrong and is_odd:
-            return ["armstrong", "odd"]
-        elif is_armstrong:
-            return ["armstrong", "even"]
-        elif is_odd:
-            return ["odd"]
-        else:
-            return ["even"]
+        properties = []
+
+        if is_armstrong:
+            properties.append("armstrong")
+        properties.append("odd" if is_odd else "even")
+
+        return properties
 
     def get_fun_fact(self, n):
-        url = f"http://numbersapi.com/{n}/math"
+        url = f"http://numbersapi.com/{abs(n)}/math"  # Use absolute value for facts
         try:
             response = requests.get(url)
             if response.status_code == 200:
